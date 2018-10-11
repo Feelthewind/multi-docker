@@ -1,19 +1,65 @@
 {
   "AWSEBDockerrunVersion": 2,
+  "volumes": [
+    {
+      "name": "vhost",
+      "host": {
+        "sourcePath": "/etc/nginx/vhost.d"
+      }
+    },
+    {
+      "name": "html",
+      "host": {
+        "sourcePath": "/usr/share/nginx/html"
+      }
+    },
+    {
+      "name": "certs",
+      "host": {
+        "sourcePath": "/var/app/current/certs"
+      }
+    },
+    {
+      "name": "sock",
+      "host": {
+        "sourcePath": "/var/app/current/sock"
+      }
+    }
+  ],
   "containerDefinitions": [
     {
       "name": "client",
       "image": "west0321/multi-client",
       "hostname": "client",
       "essential": false,
-      "memory": 128
+      "memory": 128,
+      "environment": [
+        {
+          "name": "VIRTUAL_HOST",
+          "value": "pyochan.com,www.pyochan.com"
+        },
+        {
+          "name": "LETSENCRYPT_HOST",
+          "value": "pyochan.com,www.pyochan.com"
+        }
+      ]
     },
     {
       "name": "server",
       "image": "west0321/multi-server",
       "hostname": "api",
       "essential": false,
-      "memory": 128
+      "memory": 128,
+      "environment": [
+        {
+          "name": "VIRTUAL_HOST",
+          "value": "api.pyochan.com"
+        },
+        {
+          "name": "LETSENCRYPT_HOST",
+          "value": "api.pyochan.com"
+        }
+      ]
     },
     {
       "name": "worker",
@@ -23,18 +69,65 @@
       "memory": 128
     },
     {
-      "name": "nginx",
-      "image": "west0321/multi-nginx",
-      "hostname": "nginx",
+      "name": "nginx-proxy",
+      "image": "jwilder/nginx-proxy",
+      "hostname": "nginx-proxy",
       "essential": true,
       "portMappings": [
         {
           "hostPort": 80,
           "containerPort": 80
+        },
+        {
+          "hostPort": 443,
+          "containerPort": 443
         }
       ],
-      "links": ["client", "server"],
-      "memory": 128
+      "links": ["client", "server", "letsencrypt"],
+      "memory": 128,
+      "dockerLabels": {
+        "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy": "true"
+      },
+      "mountPoints": [
+        {
+          "sourceVolume": "vhost",
+          "containerPath": "/etc/nginx/vhost.d"
+        },
+        {
+          "sourceVolume": "html",
+          "containerPath": "/usr/share/nginx/html"
+        },
+        {
+          "sourceVolume": "certs",
+          "containerPath": "/etc/nginx/certs"
+        },
+        {
+          "sourceVolume": "sock",
+          "containerPath": "/tmp/docker.sock"
+        }
+      ]
+    },
+    {
+      "name": "letsencrypt",
+      "image": "jrcs/letsencrypt-nginx-proxy-companion",
+      "hostname": "letsencrypt",
+      "essential": false,
+      "memory": 128,
+      "mountPoints": [
+        {
+          "sourceVolume": "certs",
+          "containerPath": "/etc/nginx/certs"
+        },
+        {
+          "sourceVolume": "sock",
+          "containerPath": "/var/run/docker.sock"
+        }
+      ],
+      "volumesFrom": [
+        {
+          "sourceContainer": "nginx-proxy"
+        }
+      ]
     }
   ]
 }
