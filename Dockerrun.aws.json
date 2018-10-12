@@ -10,7 +10,7 @@
     {
       "name": "html",
       "host": {
-        "sourcePath": "/usr/share/nginx/html"
+        "sourcePath": "/var/www/html"
       }
     },
     {
