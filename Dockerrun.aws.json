@@ -32,7 +32,7 @@
       "image": "west0321/multi-client",
       "hostname": "client",
       "essential": false,
-      "memory": 128,
+      "memory": 64,
       "environment": [
         {
           "name": "VIRTUAL_HOST",
@@ -49,7 +49,7 @@
       "image": "west0321/multi-server",
       "hostname": "api",
       "essential": false,
-      "memory": 128,
+      "memory": 64,
       "environment": [
         {
           "name": "VIRTUAL_HOST",
@@ -66,7 +66,7 @@
       "image": "west0321/multi-worker",
       "hostname": "worker",
       "essential": false,
-      "memory": 128
+      "memory": 64
     },
     {
       "name": "nginx-proxy",
@@ -84,7 +84,7 @@
         }
       ],
       "links": ["client", "server", "letsencrypt"],
-      "memory": 128,
+      "memory": 64,
       "dockerLabels": {
         "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy": "true"
       },
@@ -112,7 +112,7 @@
       "image": "jrcs/letsencrypt-nginx-proxy-companion",
       "hostname": "letsencrypt",
       "essential": false,
-      "memory": 128,
+      "memory": 64,
       "mountPoints": [
         {
           "sourceVolume": "certs",
